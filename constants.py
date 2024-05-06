@@ -19,7 +19,7 @@ INDIRECT_SERVICES = set([
     "equipment",
     "education",
     "materials",
-    "observe",
+    "observation",
     "research",
     "scheduling",
     "staffing",
