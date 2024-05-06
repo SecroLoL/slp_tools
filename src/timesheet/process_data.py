@@ -2,6 +2,7 @@
 Uploading and extracting relevant timesheet information from input data
 """
 
+import argparse
 import os 
 import sys
 import re
@@ -51,7 +52,7 @@ def process_event(line: str) -> SLPService:
         raise ValueError(f"Could not match input to regex pattern. Input: {line}")
 
 
-def process_doc(filename: str, save_name: str = "") -> Mapping[str, Mapping[str, float]]:
+def process_doc(filename: str, save_name: str = "", verbose=False) -> Mapping[str, Mapping[str, float]]:
     """
     Process a document file containing a week's worth of recorded fieldwork activity
 
@@ -75,28 +76,59 @@ def process_doc(filename: str, save_name: str = "") -> Mapping[str, Mapping[str,
             service = process_event(event)
             direct_or_indirect = "direct" if service.direct_service else "indirect"
             service_to_hours[direct_or_indirect][service.task_type] += service.get_duration()
+    
+    if verbose:
+        with open(save_name, "w+") as outf:
+            headline = "================DIRECT SERVICES================\n"
+            print(headline)
+            outf.write(headline)
+
+            for task, duration in sorted((service_to_hours.get('direct', [])).items()):
+                task_msg = f"Task: {task}   Duration for the week: {duration} hours.\n"
+                print(task_msg)
+                outf.write(task_msg)
+
+            direct_hours_total = sum(service_to_hours.get("direct", []).values())
+            direct_hrs_msg = f"Total direct hours for week : {direct_hours_total}\n"
+            print(direct_hrs_msg)
+
+            headline = "================INDIRECT SERVICES================\n"
+            print(headline)
+            outf.write(headline)
+            for task, duration in sorted(service_to_hours.get('indirect', []).items()):
+                task_msg = f"Task: {task}   Duration for the week: {duration} hours.\n"
+                print(task_msg)
+                outf.write(task_msg)
+
+            indirect_hour_total = sum(service_to_hours.get("indirect", []).values())
+            indirect_hrs_msg = f"Total indirect hours for week : {indirect_hour_total}\n"
+            print(indirect_hrs_msg)
+            outf.write(indirect_hrs_msg)
+            
+            total_hrs_msg = f"Total hours for the week : {direct_hours_total + indirect_hour_total}"
+            print(total_hrs_msg)
+            outf.write(total_hrs_msg)
+    
     return service_to_hours
 
 
 def main():
-
-    result = process_doc(os.path.join(os.path.dirname(__file__), 'test_week.txt'))
     
-    print("================DIRECT SERVICES================")
-    for task, duration in sorted((result.get('direct', [])).items()):
-        print(f"Task: {task}   Duration for the week: {duration} hours.")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data_file", type=str, default=os.path.join(os.path.dirname(__file__), 'data', "week8.txt"), help="Path to file containing time logs.")
+    parser.add_argument("--log_regex", type=str, default=REGEX_PATTERN, help="Regex pattern to extract fields with")  # TODO expand on this
+    parser.add_argument("--save_name", type=str, default=os.path.join(os.path.dirname(__file__), "save_files", "example.txt"), help="Where to store output")
+    parser.add_argument("--verbose", action="store_true", default=False, help="Whether to print out results to terminal.")
 
-    direct_hours_total = sum(result.get("direct", []).values())
-    print(f"Total direct hours for week : {direct_hours_total}")
+    args = parser.parse_args()
+    DATA_PATH = args.data_file
+    LOG_REGEX = args.log_regex
+    SAVE_NAME = args.save_name
+    VERBOSE = args.verbose
 
-    print("================INDIRECT SERVICES================")
-    for task, duration in sorted(result.get('indirect', []).items()):
-        print(f"Task: {task}   Duration for the week: {duration} hours.")
+    print(DATA_PATH, SAVE_NAME, VERBOSE)
 
-    indirect_hour_total = sum(result.get("indirect", []).values())
-    print(f"Total indirect hours for week : {indirect_hour_total}")
-
-    print(f"Total hours for the week : {direct_hours_total + indirect_hour_total}")
+    result = process_doc(DATA_PATH, SAVE_NAME, VERBOSE)
 
 
 if __name__ == "__main__":
