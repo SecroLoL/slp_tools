@@ -30,6 +30,6 @@ INDIRECT_SERVICES = set([
 
 SECONDS_IN_AN_HOUR = 3600
 
-REGEX_PATTERN = pattern = r"Week (\d+) \((\w+)\) (\d{1,2}:\d{2} [AP]M) - (\d{1,2}:\d{2} [AP]M) : (\w+) (\w+)"
+REGEX_PATTERN = r"Week (\d+) \((\w+)\) (\d{1,2}:\d{2} [AP]M)\s*-\s*(\d{1,2}:\d{2} [AP]M) : (\w+) (\w+)"
 
 DUMMY_DATE = datetime(2000, 1, 1)   # Dummy date to compare times across the same days
